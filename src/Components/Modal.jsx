@@ -16,7 +16,7 @@ const Modal = ({ open, onClose, selectedImage }) => {
         
         >
             <div className="w-[50%]" >
-            {selectedImage && <div><img src={selectedImage.download_url} /> <p>{}</p> </div>}
+            {selectedImage && <div><img src={selectedImage} /> <p>{}</p> </div>}
             </div>
           
         </Box>

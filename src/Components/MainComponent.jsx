@@ -20,7 +20,7 @@ const MainComponent = () => {
     const handleOpenModal = (image) =>{
         console.log("images", image)
         setOpen(true);
-        setImageUrl(image.download_url)
+        // setImageUrl(image.download_url)
         setSelectedImage(image)
     }
     console.log(imageUrl, "imaging")
