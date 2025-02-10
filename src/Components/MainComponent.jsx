@@ -1,10 +1,11 @@
-import React from "react";
-import { useEffect, useState } from "react";
-import ImagesCard from "./ImagesCard";
-import MyPagination from "./MyPagination";
-import { TailSpin } from "react-loader-spinner";
-import { useSearchParams } from "react-router-dom";
-import Modal from "./Modal";
+import React, { useState, useEffect, Suspense } from 'react';
+import { TailSpin } from 'react-loader-spinner';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Box } from '@mui/material';
+
+const ImagesCard = React.lazy(() => import('./ImagesCard'));
+const MyPagination = React.lazy(() => import('./MyPagination'));
+const Modal = React.lazy(() => import('./Modal'));
 
 const MainComponent = () => {
   const [data, setData] = useState([]);
@@ -12,52 +13,45 @@ const MainComponent = () => {
   const [loading, setLoading] = useState(true);
   const [imagesPerPage, setImagesPerPage] = useState(8);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [open, setOpen] = useState(false)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [imageUrl , setImageUrl] = useState("")
-  const [inputValue, setInputValue] = useState(searchParams.get('limit') || "")
+  const [open, setOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [inputValue, setInputValue] = useState(searchParams.get("limit") || "");
+  const navigate = useNavigate();
 
-    const handleOpenModal = (image) =>{
-        console.log("images", image)
-        setOpen(true);
-        // setImageUrl(image.download_url)
-        setSelectedImage(image)
+  const handleOpenModal = (image) => {
+    setSelectedImage(image);
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+    setSelectedImage(null);
+  };
+
+  const fetchImages = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("https://picsum.photos/v2/list");
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error("Error fetching images:", error);
+    } finally {
+      setLoading(false);
     }
-    console.log(imageUrl, "imaging")
-    // console.log("hello", selectedImage)
-
-    const handleCloseModal = () =>{
-        setOpen(false);
-        setImageUrl(null)
-    }
-
-  
-    const fetchImages = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("https://picsum.photos/v2/list");
-        const result = await response.json();
-        setData(result);
-      } catch (error) {
-        console.error("Error fetching images:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  };
 
   useEffect(() => {
     fetchImages();
-  },[])
+  }, []);
 
   useEffect(() => {
     const limitFromUrl = searchParams.get("limit");
     if (limitFromUrl) {
-    
       const parsedLimit = parseInt(limitFromUrl, 10);
       if (!isNaN(parsedLimit) && parsedLimit > 0) {
         setImagesPerPage(parsedLimit);
       } else {
-        
         setImagesPerPage(8);
       }
     }
@@ -69,35 +63,36 @@ const MainComponent = () => {
 
   const handleEnter = (e) => {
     e.preventDefault();
-    const limitInput = searchParams.get("limit");
-    const parsedLimit = parseInt(limitInput, 10);
+    const parsedLimit = parseInt(inputValue, 10);
 
     if (!isNaN(parsedLimit) && parsedLimit > 0) {
-      setLoading(true)
+      setLoading(true);
       setImagesPerPage(parsedLimit);
-      setCurrentPage(1);
-      setSearchParams({limit : inputValue})
-      fetchImages() 
+      setCurrentPage(1); // reset to page 1
+      setSearchParams({ limit: inputValue });
+      fetchImages(); // Fetch images again with the new limit
     } else {
       setImagesPerPage(8);
-      setCurrentPage(1);
+      setCurrentPage(1); // reset to page 1
       console.error("Invalid limit value. Using default value.");
     }
   };
 
   const lastImageIndex = currentPage * imagesPerPage;
   const firstImageIndex = lastImageIndex - imagesPerPage;
-  const currentImages = data.slice(firstImageIndex, lastImageIndex); // No need for the data && check
+  const currentImages = data.slice(firstImageIndex, lastImageIndex);
 
   const totalPages = Math.ceil(data.length / imagesPerPage);
 
+  const handleImageClick = (image) => {
+    navigate(`image/${image.id}`, {state : { image }});
+  };
+
   return (
     <div>
-      <div className="text-center text-3xl font-semibold mb-8">
-        Image Gallery
-      </div>
+      <div className='text-center text-3xl font-semibold mb-8'>Image Gallery</div>
       {loading ? (
-        <div className="flex justify-center items-center">
+        <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
           <TailSpin
             visible={true}
             height="80"
@@ -108,33 +103,30 @@ const MainComponent = () => {
             wrapperStyle={{}}
             wrapperClass=""
           />
-        </div>
+        </Box>
       ) : (
-        <>
-          <ImagesCard currentImages={currentImages} imageUrl={imageUrl}  openModal={handleOpenModal} />
+        <Suspense fallback={<div>Loading...</div>}>
+          <ImagesCard currentImages={currentImages} openModal={handleOpenModal} handleImageClick={handleImageClick} />
           <div className="flex justify-evenly items-center">
             <form onSubmit={handleEnter}>
-              {" "}
-              {/* Form submit handles enter */}
               <label>Filter Images: </label>
               <input
                 onChange={(e) => setInputValue(e.target.value)}
                 className="border-2 border-sky-400 w-[80px]"
                 type="number"
-                value={inputValue} // Controlled input
+                value={inputValue}
               />
-              <button type="submit">Enter</button> {/* Button type submit */}
+              <button type="submit">Enter</button>
             </form>
             <MyPagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handleChangePage}
             />
-            
           </div>
-        </>
+          <Modal open={open} onClose={handleCloseModal} selectedImage={selectedImage} />
+        </Suspense>
       )}
-      <Modal open={open} onClose={handleCloseModal} selectedImage={selectedImage}/>
     </div>
   );
 };

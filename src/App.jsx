@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import ImagesCard from "./Components/ImagesCard";
-import MyPagination from "./Components/MyPagination";
-import { TailSpin } from "react-loader-spinner";
-import { useSearchParams } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import MainComponent from "./Components/MainComponent";
+import ImageDetails from "./Components/ImageDetails";
 
 function App() {
 
   return (
-    <div>
-      <MainComponent/>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainComponent/>}/>
+        <Route path="/image/:id" element={<ImageDetails/>}/>
+      </Routes>
+    </Router>
+    
   );
 }
 
