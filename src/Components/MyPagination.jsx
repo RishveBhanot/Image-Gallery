@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import ArrowBackIosNewSharpIcon from '@mui/icons-material/ArrowBackIosNewSharp';
 
 const MyPagination = ({ currentPage, totalPages, onPageChange }) => {
+
+  const [loading, setLoading] = useState(true);
+
   const handlePrevious = () => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);

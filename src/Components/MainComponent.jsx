@@ -18,16 +18,19 @@ const MainComponent = () => {
   const [inputValue, setInputValue] = useState(searchParams.get("limit") || "");
   const navigate = useNavigate();
 
+  //Use to open the modal.
   const handleOpenModal = (image) => {
     setSelectedImage(image);
     setOpen(true);
   };
 
+  //Use to close the modal.
   const handleCloseModal = () => {
     setOpen(false);
     setSelectedImage(null);
   };
 
+  //  Fetching the images from an API
   const fetchImages = async () => {
     setLoading(true);
     try {
@@ -41,10 +44,13 @@ const MainComponent = () => {
     }
   };
 
+  //Fetching Images from an API when component first mounts.
   useEffect(() => {
     fetchImages();
   }, []);
 
+
+  //Manually typing the limit in the url to render that particular number of images on the webpage. Whenever searchParams change then this use effect re-render that number of images.
   useEffect(() => {
     const limitFromUrl = searchParams.get("limit");
     if (limitFromUrl) {
@@ -61,6 +67,7 @@ const MainComponent = () => {
     setCurrentPage(newPage);
   };
 
+  //When user type limits he wants to see in the input field then exactly that number of images will be render on that webpage. 
   const handleEnter = (e) => {
     e.preventDefault();
     const parsedLimit = parseInt(inputValue, 10);
@@ -84,6 +91,7 @@ const MainComponent = () => {
 
   const totalPages = Math.ceil(data.length / imagesPerPage);
 
+  //This function is used to navigate to route in which individual image is displayed on which user clicks. This state is also send with this because it contains the current image on which user clicked. So when user navigates to successfully that component then useLocation hook can use this state to display/render that particular image.
   const handleImageClick = (image) => {
     navigate(`image/${image.id}`, {state : { image }});
   };
@@ -105,7 +113,18 @@ const MainComponent = () => {
           />
         </Box>
       ) : (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div><Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+          <TailSpin
+            visible={true}
+            height="80"
+            width="80"
+            color="#4fa94d"
+            ariaLabel="tail-spin-loading"
+            radius="1"
+            wrapperStyle={{}}
+            wrapperClass=""
+          />
+        </Box></div>}>
           <ImagesCard currentImages={currentImages} openModal={handleOpenModal} handleImageClick={handleImageClick} />
           <div className="flex justify-evenly items-center">
             <form onSubmit={handleEnter}>
